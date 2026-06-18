@@ -1,0 +1,71 @@
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
+
+# Frequência de amostragem
+fs = 1000  # Hz
+
+# Tempo de 1 segundo
+t = np.arange(0, 1, 1/fs)
+
+# Componentes do sinal
+f1 = 50      # frequência baixa
+f2 = 200     # frequência alta
+
+# Sinal composto
+x = np.sin(2*np.pi*f1*t) + 0.7*np.sin(2*np.pi*f2*t)
+
+# Projeto do filtro Butterworth passa-baixa
+fc = 100     # frequência de corte
+
+ordem = 4
+
+b, a = butter(ordem, fc/(fs/2), btype='low')
+
+# Aplicação do filtro
+y = filtfilt(b, a, x)
+
+# FFT
+N = len(x)
+
+freq = np.fft.fftfreq(N, 1/fs)
+
+X = np.abs(np.fft.fft(x))
+Y = np.abs(np.fft.fft(y))
+
+# Apenas frequências positivas
+idx = freq >= 0
+
+# Gráficos
+plt.figure(figsize=(12,8))
+
+plt.subplot(2,2,1)
+plt.plot(t, x)
+plt.title("Sinal Original")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,2)
+plt.plot(t, y)
+plt.title("Sinal Filtrado")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,3)
+plt.plot(freq[idx], X[idx])
+plt.title("Espectro do Sinal Original")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.subplot(2,2,4)
+plt.plot(freq[idx], Y[idx])
+plt.title("Espectro do Sinal Filtrado")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.tight_layout()
+plt.show()
