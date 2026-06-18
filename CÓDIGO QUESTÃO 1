@@ -1,3 +1,5 @@
+#QUESTÃO 1
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import butter, filtfilt
@@ -69,3 +71,769 @@ plt.grid()
 
 plt.tight_layout()
 plt.show()
+
+# QUESTÃO 2
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import firwin, filtfilt
+
+# ==============================
+# Parâmetros do sinal
+# ==============================
+
+fs = 1000          # Frequência de amostragem (Hz)
+T = 1              # Duração (s)
+
+t = np.arange(0, T, 1/fs)
+
+# Sinal original
+f = 50             # Frequência da senoide
+
+x = np.sin(2*np.pi*f*t)
+
+# ==============================
+# Adicionando ruído branco
+# ==============================
+
+np.random.seed(10)
+
+ruido = 0.5*np.random.randn(len(t))
+
+x_ruidoso = x + ruido
+
+# ==============================
+# Projeto do filtro FIR
+# ==============================
+
+fc = 100                 # Frequência de corte
+
+num_coef = 51            # Ordem do filtro
+
+coef = firwin(num_coef,
+              cutoff=fc,
+              fs=fs)
+
+# Filtragem
+
+x_filtrado = filtfilt(coef,
+                      [1],
+                      x_ruidoso)
+
+# ==============================
+# FFT
+# ==============================
+
+freq = np.fft.fftfreq(len(t),1/fs)
+
+Xr = np.abs(np.fft.fft(x_ruidoso))
+Xf = np.abs(np.fft.fft(x_filtrado))
+
+idx = freq >= 0
+
+# ==============================
+# Gráficos
+# ==============================
+
+plt.figure(figsize=(12,8))
+
+plt.subplot(2,2,1)
+plt.plot(t,x)
+plt.title("Sinal Original")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,2)
+plt.plot(t,x_ruidoso)
+plt.title("Sinal com Ruído Branco")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,3)
+plt.plot(t,x_filtrado)
+plt.title("Sinal Após Filtro FIR")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,4)
+plt.plot(freq[idx],Xr[idx],label='Com Ruído')
+plt.plot(freq[idx],Xf[idx],label='Filtrado')
+plt.legend()
+plt.title("Espectro dos Sinais")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.tight_layout()
+plt.show()
+
+#QUESTÃO 3
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
+
+# ======================================
+# Parâmetros do sinal
+# ======================================
+
+fs = 1000          # Frequência de amostragem (Hz)
+T = 1              # Duração (s)
+
+t = np.arange(0, T, 1/fs)
+
+# Sinal original
+f = 50             # Frequência da senoide
+
+x = np.sin(2*np.pi*f*t)
+
+# ======================================
+# Adicionando ruído branco
+# ======================================
+
+np.random.seed(10)
+
+ruido = 0.5*np.random.randn(len(t))
+
+x_ruidoso = x + ruido
+
+# ======================================
+# Projeto do filtro IIR Butterworth
+# ======================================
+
+fc = 100      # Frequência de corte (Hz)
+
+ordem = 4
+
+b, a = butter(ordem,
+              fc/(fs/2),
+              btype='low')
+
+# Filtragem
+
+x_filtrado = filtfilt(b, a, x_ruidoso)
+
+# ======================================
+# FFT
+# ======================================
+
+freq = np.fft.fftfreq(len(t),1/fs)
+
+Xr = np.abs(np.fft.fft(x_ruidoso))
+Xf = np.abs(np.fft.fft(x_filtrado))
+
+idx = freq >= 0
+
+# ======================================
+# Gráficos
+# ======================================
+
+plt.figure(figsize=(12,8))
+
+plt.subplot(2,2,1)
+plt.plot(t,x)
+plt.title("Sinal Original")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,2)
+plt.plot(t,x_ruidoso)
+plt.title("Sinal com Ruído Branco")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,3)
+plt.plot(t,x_filtrado)
+plt.title("Sinal Após Filtro IIR Butterworth")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,4)
+plt.plot(freq[idx],Xr[idx],label='Com Ruído')
+plt.plot(freq[idx],Xf[idx],label='Filtrado')
+plt.legend()
+plt.title("Espectro dos Sinais")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.tight_layout()
+
+plt.show()
+
+#QUESTÃO 4
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import firwin, butter, freqz
+
+# ======================================
+# Parâmetros
+# ======================================
+
+fs = 1000              # Frequência de amostragem (Hz)
+fc = 100               # Frequência de corte (Hz)
+
+# ======================================
+# Projeto do filtro FIR
+# ======================================
+
+ordem_fir = 50
+
+coef_fir = firwin(ordem_fir + 1,
+                  cutoff=fc,
+                  fs=fs)
+
+# ======================================
+# Projeto do filtro IIR Butterworth
+# ======================================
+
+ordem_iir = 4
+
+b, a = butter(ordem_iir,
+              fc/(fs/2),
+              btype='low')
+
+# ======================================
+# Resposta em frequência
+# ======================================
+
+w_fir, h_fir = freqz(coef_fir, worN=2048, fs=fs)
+
+w_iir, h_iir = freqz(b, a, worN=2048, fs=fs)
+
+# ======================================
+# Gráfico
+# ======================================
+
+plt.figure(figsize=(10,6))
+
+plt.plot(w_fir,
+         20*np.log10(np.abs(h_fir)),
+         label='Filtro FIR')
+
+plt.plot(w_iir,
+         20*np.log10(np.abs(h_iir)),
+         label='Filtro IIR Butterworth')
+
+plt.title("Comparação da Resposta em Frequência")
+
+plt.xlabel("Frequência (Hz)")
+
+plt.ylabel("Magnitude (dB)")
+
+plt.grid()
+
+plt.legend()
+
+plt.xlim(0,500)
+
+plt.ylim(-80,5)
+
+plt.show()
+
+#QUESTÃO 5
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, tf2zpk
+
+# ======================================
+# Projeto do filtro Butterworth
+# ======================================
+
+fs = 1000          # Frequência de amostragem (Hz)
+fc = 100           # Frequência de corte (Hz)
+ordem = 4
+
+# Coeficientes do filtro
+
+b, a = butter(ordem,
+              fc/(fs/2),
+              btype='low')
+
+# ======================================
+# Polos e Zeros
+# ======================================
+
+zeros, polos, ganho = tf2zpk(b, a)
+
+# ======================================
+# Círculo Unitário
+# ======================================
+
+theta = np.linspace(0, 2*np.pi, 500)
+
+x = np.cos(theta)
+y = np.sin(theta)
+
+# ======================================
+# Gráfico
+# ======================================
+
+plt.figure(figsize=(7,7))
+
+# Círculo unitário
+plt.plot(x, y, '--', label='Círculo Unitário')
+
+# Zeros
+plt.scatter(np.real(zeros),
+            np.imag(zeros),
+            marker='o',
+            s=100,
+            label='Zeros')
+
+# Polos
+plt.scatter(np.real(polos),
+            np.imag(polos),
+            marker='x',
+            s=100,
+            label='Polos')
+
+plt.axhline(0,color='black')
+plt.axvline(0,color='black')
+
+plt.xlabel('Parte Real')
+
+plt.ylabel('Parte Imaginária')
+
+plt.title('Polos e Zeros do Filtro IIR Butterworth')
+
+plt.grid(True)
+
+plt.axis('equal')
+
+plt.legend()
+
+plt.show()
+
+#QUESTÃO 6
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import firwin, butter, lfilter
+
+# ===========================================
+# Parâmetros
+# ===========================================
+
+fs = 1000          # Frequência de amostragem (Hz)
+fc = 100           # Frequência de corte (Hz)
+
+# ===========================================
+# Projeto do filtro FIR
+# ===========================================
+
+ordem_fir = 50
+
+coef_fir = firwin(ordem_fir + 1,
+                  cutoff=fc,
+                  fs=fs)
+
+# ===========================================
+# Projeto do filtro IIR Butterworth
+# ===========================================
+
+ordem_iir = 4
+
+b, a = butter(ordem_iir,
+              fc/(fs/2),
+              btype='low')
+
+# ===========================================
+# Geração do impulso unitário
+# ===========================================
+
+N = 120
+
+impulso = np.zeros(N)
+
+impulso[0] = 1
+
+# ===========================================
+# Resposta ao impulso
+# ===========================================
+
+resp_fir = lfilter(coef_fir,
+                   [1],
+                   impulso)
+
+resp_iir = lfilter(b,
+                   a,
+                   impulso)
+
+# ===========================================
+# Gráficos
+# ===========================================
+
+plt.figure(figsize=(12,5))
+
+plt.subplot(1,2,1)
+
+plt.stem(resp_fir)
+
+plt.title("Resposta ao Impulso - FIR")
+
+plt.xlabel("Amostras")
+
+plt.ylabel("Amplitude")
+
+plt.grid()
+
+plt.subplot(1,2,2)
+
+plt.stem(resp_iir)
+
+plt.title("Resposta ao Impulso - IIR Butterworth")
+
+plt.xlabel("Amostras")
+
+plt.ylabel("Amplitude")
+
+plt.grid()
+
+plt.tight_layout()
+
+plt.show()
+
+#QUESTÃO 7
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
+
+# =====================================
+# Parâmetros
+# =====================================
+
+fs = 1000              # Frequência de amostragem (Hz)
+T = 1                  # Tempo (s)
+
+t = np.arange(0, T, 1/fs)
+
+# =====================================
+# Sinal composto
+# =====================================
+
+f1 = 50
+f2 = 150
+f3 = 300
+
+x = (np.sin(2*np.pi*f1*t) +
+     np.sin(2*np.pi*f2*t) +
+     np.sin(2*np.pi*f3*t))
+
+# =====================================
+# Projeto do filtro passa-faixa
+# =====================================
+
+f_low = 130
+f_high = 170
+
+ordem = 4
+
+b, a = butter(ordem,
+              [f_low/(fs/2), f_high/(fs/2)],
+              btype='bandpass')
+
+# =====================================
+# Aplicação do filtro
+# =====================================
+
+y = filtfilt(b, a, x)
+
+# =====================================
+# FFT
+# =====================================
+
+N = len(x)
+
+freq = np.fft.fftfreq(N, 1/fs)
+
+X = np.abs(np.fft.fft(x))
+Y = np.abs(np.fft.fft(y))
+
+idx = freq >= 0
+
+# =====================================
+# Gráficos
+# =====================================
+
+plt.figure(figsize=(12,8))
+
+plt.subplot(2,2,1)
+plt.plot(t, x)
+plt.title("Sinal Original")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,2)
+plt.plot(t, y)
+plt.title("Sinal Após Filtro Passa-Faixa")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Amplitude")
+plt.grid()
+
+plt.subplot(2,2,3)
+plt.plot(freq[idx], X[idx])
+plt.title("Espectro do Sinal Original")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.subplot(2,2,4)
+plt.plot(freq[idx], Y[idx])
+plt.title("Espectro do Sinal Filtrado")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.tight_layout()
+
+plt.show()
+
+#QUESTÃO 8
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import firwin, butter, freqz
+
+# ==========================================
+# Parâmetros
+# ==========================================
+
+fs = 1000          # Frequência de amostragem (Hz)
+fc = 100           # Frequência de corte (Hz)
+
+# ==========================================
+# Projeto do filtro FIR
+# ==========================================
+
+ordem_fir = 50
+
+coef_fir = firwin(ordem_fir + 1,
+                  cutoff=fc,
+                  fs=fs)
+
+# ==========================================
+# Projeto do filtro IIR Butterworth
+# ==========================================
+
+ordem_iir = 4
+
+b, a = butter(ordem_iir,
+              fc/(fs/2),
+              btype='low')
+
+# ==========================================
+# Resposta em frequência
+# ==========================================
+
+w_fir, h_fir = freqz(coef_fir, worN=2048, fs=fs)
+w_iir, h_iir = freqz(b, a, worN=2048, fs=fs)
+
+# ==========================================
+# Resposta de fase
+# ==========================================
+
+fase_fir = np.unwrap(np.angle(h_fir))
+fase_iir = np.unwrap(np.angle(h_iir))
+
+# ==========================================
+# Gráfico
+# ==========================================
+
+plt.figure(figsize=(10,6))
+
+plt.plot(w_fir,
+         fase_fir,
+         label='Filtro FIR')
+
+plt.plot(w_iir,
+         fase_iir,
+         label='Filtro IIR Butterworth')
+
+plt.title("Comparação da Resposta de Fase")
+
+plt.xlabel("Frequência (Hz)")
+
+plt.ylabel("Fase (rad)")
+
+plt.grid(True)
+
+plt.legend()
+
+plt.xlim(0,500)
+
+plt.show()
+
+#QUESTÃO 9
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import firwin, butter, group_delay
+
+# ======================================
+# Parâmetros
+# ======================================
+
+fs = 1000          # Frequência de amostragem (Hz)
+fc = 100           # Frequência de corte (Hz)
+
+# ======================================
+# Projeto do filtro FIR
+# ======================================
+
+ordem_fir = 50
+
+coef_fir = firwin(ordem_fir + 1,
+                  cutoff=fc,
+                  fs=fs)
+
+# ======================================
+# Projeto do filtro IIR Butterworth
+# ======================================
+
+ordem_iir = 4
+
+b, a = butter(ordem_iir,
+              fc/(fs/2),
+              btype='low')
+
+# ======================================
+# Cálculo do atraso de grupo
+# ======================================
+
+w_fir, gd_fir = group_delay((coef_fir, [1]), fs=fs)
+
+w_iir, gd_iir = group_delay((b, a), fs=fs)
+
+# ======================================
+# Gráfico
+# ======================================
+
+plt.figure(figsize=(10,6))
+
+plt.plot(w_fir,
+         gd_fir,
+         label='Filtro FIR')
+
+plt.plot(w_iir,
+         gd_iir,
+         label='Filtro IIR Butterworth')
+
+plt.title('Comparação do Atraso de Grupo')
+
+plt.xlabel('Frequência (Hz)')
+
+plt.ylabel('Atraso (amostras)')
+
+plt.grid(True)
+
+plt.legend()
+
+plt.xlim(0,500)
+
+plt.show()
+
+# QUESTÃO 10
+
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import butter, filtfilt
+
+# ======================================
+# Parâmetros
+# ======================================
+
+fs = 100             # Frequência de amostragem (Hz)
+T = 20               # Tempo de aquisição (s)
+
+t = np.arange(0, T, 1/fs)
+
+# ======================================
+# Simulação da temperatura
+# ======================================
+
+temperatura = 25 + 2*np.sin(2*np.pi*0.2*t)
+
+# Ruído branco
+
+np.random.seed(10)
+
+ruido = 0.8*np.random.randn(len(t))
+
+sensor = temperatura + ruido
+
+# ======================================
+# Projeto do filtro Butterworth
+# ======================================
+
+fc = 2               # Frequência de corte (Hz)
+
+ordem = 4
+
+b, a = butter(ordem,
+              fc/(fs/2),
+              btype='low')
+
+# Filtragem
+
+sensor_filtrado = filtfilt(b, a, sensor)
+
+# ======================================
+# FFT
+# ======================================
+
+freq = np.fft.fftfreq(len(sensor),1/fs)
+
+S1 = np.abs(np.fft.fft(sensor))
+S2 = np.abs(np.fft.fft(sensor_filtrado))
+
+idx = freq >= 0
+
+# ======================================
+# Gráficos
+# ======================================
+
+plt.figure(figsize=(12,8))
+
+plt.subplot(2,2,1)
+plt.plot(t, sensor)
+plt.title("Leitura do Sensor com Ruído")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Temperatura (°C)")
+plt.grid()
+
+plt.subplot(2,2,2)
+plt.plot(t, sensor_filtrado)
+plt.title("Leitura Após Filtragem")
+plt.xlabel("Tempo (s)")
+plt.ylabel("Temperatura (°C)")
+plt.grid()
+
+plt.subplot(2,2,3)
+plt.plot(freq[idx], S1[idx])
+plt.title("Espectro Antes da Filtragem")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.subplot(2,2,4)
+plt.plot(freq[idx], S2[idx])
+plt.title("Espectro Após Filtragem")
+plt.xlabel("Frequência (Hz)")
+plt.ylabel("Magnitude")
+plt.grid()
+
+plt.tight_layout()
+
+plt.show()
+
